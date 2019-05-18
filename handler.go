@@ -21,12 +21,15 @@ func (couchDB *CouchDB) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *d
 
 	qrecord, z := couchDB.Find(qname)
 	if z.Rev == "" {
-		return dns.RcodeServerFailure, nil
+		return dns.RcodeRefused, nil // Refused   - Query Refused
 	}
 
 	switch qtype {
 	case dns.TypeA:
 		answers, extras = couchDB.A(qrecord, &z)
+		if answers == nil {
+			answers, extras = couchDB.CNAME(qrecord, &z)
+		}
 	case dns.TypeNS:
 		answers, extras = couchDB.NS(qrecord, &z)
 	case dns.TypeCNAME:
@@ -41,12 +44,14 @@ func (couchDB *CouchDB) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *d
 		answers, extras = couchDB.SOA(qrecord, &z)
 	case dns.TypeSRV:
 		answers, extras = couchDB.SRV(qrecord, &z)
+	case dns.TypeCAA:
+		answers, extras = couchDB.CAA(qrecord, &z)
 	default:
-		return dns.RcodeNotImplemented, nil // ServFail - Server Failure
+		return dns.RcodeNotImplemented, nil // NotImp    - Not Implemented
 	}
 
 	if answers == nil {
-		return dns.RcodeServerFailure, nil // ServFail - Server Failure
+		return dns.RcodeServerFailure, nil // ServFail  - Server Failure
 	}
 
 	// response

@@ -202,6 +202,7 @@ func (couchDB *CouchDB) CNAME(query string, z *Zone) (answers, extras []dns.RR) 
 
 		r.Target = dns.Fqdn(rec.Data)
 		answers = append(answers, r)
+		answers = append(answers, couchDB.hosts(r.Target)...)
 	}
 	return
 }
@@ -427,6 +428,55 @@ func parseSRV(args ...string) (uint16, uint16, uint16, string) {
 
 }
 
+// CAA returns CAA DNS records that matches with the query.
+// Data record format such as RFC 4408 https://tools.ietf.org/html/rfc4408
+func (couchDB *CouchDB) CAA(query string, z *Zone) (answers, extras []dns.RR) {
+	for _, rec := range z.Data {
+		name := query
+		if rec.Name != name {
+			continue
+		}
+
+		if dns.TypeCAA != rec.Type {
+			continue
+		}
+
+		if name != "" {
+			name = fmt.Sprintf("%s.%s", name, z.ID)
+		} else {
+			name = z.ID
+		}
+
+		r := new(dns.CAA)
+		r.Hdr = dns.RR_Header{
+			Name:   name,
+			Rrtype: dns.TypeCAA,
+			Class:  dns.ClassINET,
+			Ttl:    rec.TTL,
+		}
+
+		caa := strings.Fields(rec.Data)
+
+		if len(caa) < 3 {
+			continue
+		}
+		r.Flag, r.Tag, r.Value = parseCAA(caa[0:]...)
+		answers = append(answers, r)
+	}
+	return
+}
+
+// parseCAA unpack and parse CAA from json data record.
+func parseCAA(args ...string) (uint8, string, string) {
+	var flag uint8
+
+	if d, err := strconv.Atoi(args[0]); err == nil {
+		flag = uint8(d)
+	}
+
+	return flag, args[1], args[2]
+}
+
 // Split255 splits a string into 255 byte chunks.
 func split255(s string) []string {
 	if len(s) < 255 {
@@ -476,7 +526,7 @@ func (couchDB *CouchDB) Find(qname string) (qrecord string, z Zone) {
 	return
 }
 
-// hosts returns additional  
+// hosts returns additional
 func (couchDB *CouchDB) hosts(qname string) (answers []dns.RR) {
 
 	qrecord, z := couchDB.Find(qname)
