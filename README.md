@@ -17,11 +17,11 @@ configure HTTP basic authentication by providing username and password.
 
 ~~~ txt
 couchdb {
-	address  COUCHDB ADDRESS
-	port     COUCHDB PORT
+    address  COUCHDB ADDRESS
+    port     COUCHDB PORT
     dbname   COUCHDB DBNAME
-	username USERNAME BASIC AUTH
-	password PASSWORD BASIC AUTH
+    username USERNAME BASIC AUTH
+    password PASSWORD BASIC AUTH
 }
 ~~~
 
@@ -67,7 +67,7 @@ First, must create database zones:
 Add some documents:
 
 ```
-# curl -0 http://127.0.0.1:5984/zones1 \
+# curl -0 http://127.0.0.1:5984/zones \
 -H 'Content-Type: application/json' \
 -d @- << EOF
 {
