@@ -4,15 +4,28 @@
 
 2.- Install golang version >= 1.12
 
-`https://golang.org/doc/install?download=go1.13.8.linux-amd64.tar.gz`
+`wget https://dl.google.com/go/go1.13.8.linux-amd64.tar.gz`
+
+`tar -C /usr/local -xzf go1.13.8.linux-amd64.tar.gz`
+
+`export PATH=$PATH:/usr/local/go/bin`
+
+```bash
+go version
+go version go1.13.8 linux/amd64
+```
 
 3.- Clone couchdb repo
 
-`https://github.com/soysuperadmin/couchdb.git`
+`git clone https://github.com/soysuperadmin/couchdb.git`
 
 4.- Copy couchdb repo on coredns/plugin folder
 
+`rsync -av --exclude *.git couchdb coredns/plugin`
+
 5.- Enable plugin on `plugin.cfg`. Add `couchdb:couchdb` at the end of the file
+
+`echo "couchdb:couchdb" >> couchdb/plugin.cfg`
 
 ```bash
 # Directives are registered in the order they should be executed.
@@ -89,9 +102,13 @@ couchdb:couchdb
 
 `sudo apt install build-essential`
 
-7.- Run `make`
+7.- Go into coredns folder
 
-8.- Test coredns is build with couchdb plugin with `./coredns -plugins | grep couchdb`
+`cd coredns`
+
+8.- Run `make`
+
+9.- Test coredns is build with couchdb plugin with `./coredns -plugins | grep couchdb`
 
 ```bash
 root@dns:~/coredns-1.6.7$ ./coredns -plugins |grep couchdb
